@@ -38,11 +38,11 @@ namespace AdvCode2025_4
             return output;
         }
 
-        static public int AccessibleForklifts(List<List<bool>> grid)
+        static public int AccessibleForklifts(List<List<bool>> grid, List<(int, int)> toRemove)
         {
-            int accessibleCount = 0;
             int rowCount = grid.Count;
             int colCount = grid[0].Count;
+            int accessibleCount = 0;
             
             int[][] directions = new int[][]
             {
@@ -72,22 +72,47 @@ namespace AdvCode2025_4
                         
                         if (adjacentCount < 4)
                         {
+                            toRemove.Add((i, j));
                             accessibleCount++;
                         }
                     }
                 }
             }
+
             return accessibleCount;
+        }
+
+        static public int RemoveAccessibleRolls(List<List<bool>> grid)
+        {
+            int totalRemoved = 0;
+            bool hasRemoved = true;
+
+            while (hasRemoved)
+            {
+                hasRemoved = false;
+                List<(int, int)> toRemove = new List<(int, int)>();
+                
+                int accessibleCount = AccessibleForklifts(grid, toRemove);
+                totalRemoved += accessibleCount;
+                
+                foreach (var pos in toRemove)
+                {
+                    grid[pos.Item1][pos.Item2] = false;
+                }
+
+                if (accessibleCount > 0) hasRemoved = true;
+            }
+
+            return totalRemoved;
         }
 
         static void Main(string[] args)
         {
             string input = System.IO.File.ReadAllText("input.txt");
-
             List<List<bool>> grid = Parse(input);
-            int accessibleRolls = AccessibleForklifts(grid);
 
-            Console.WriteLine($"Accessible rolls of paper: {accessibleRolls}");
+            int totalRollsRemoved = RemoveAccessibleRolls(grid);
+            Console.WriteLine($"Total rolls of paper removed: {totalRollsRemoved}");
         }
     }
 }
